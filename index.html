@@ -316,6 +316,37 @@
   .heat-legend{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-top:10px;font-weight:500}
   .heat-legend .sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--border)}
 
+  /* backup nudge */
+  .nudge{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:18px;position:relative}
+  .nudge > svg{width:22px;height:22px;color:var(--accent);flex:none}
+  .nudge-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .nudge-body b{font-size:14px;font-weight:650}
+  .nudge-body span{font-size:12.5px;color:var(--muted);line-height:1.4}
+  .nudge .btn{padding:8px 13px;font-size:13px}
+  .nudge-x{width:26px;height:26px;border-radius:8px;color:var(--muted);font-size:18px;line-height:1;flex:none}
+  .nudge-x:hover{background:var(--surface-2);color:var(--ink)}
+
+  /* AI settings panel */
+  .ai-panel{border-top:1px solid var(--border)}
+  .tag-adv{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--accent-ink);background:var(--accent-soft);padding:2px 6px;border-radius:6px;vertical-align:1px;margin-left:4px}
+  .key-input{width:100%;border:1.5px solid var(--border);border-radius:11px;background:var(--surface-2);padding:12px 13px;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:4px 0 8px}
+  .key-input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+  .ai-note{font-size:12.5px;color:var(--muted);line-height:1.5;padding-bottom:14px}
+  .ai-note b{color:var(--ink-2);font-weight:650}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
+  /* AI review output */
+  .ai-block{margin-top:14px}
+  #ai-btn{display:inline-flex;align-items:center;gap:7px}
+  #ai-btn svg{width:15px;height:15px}
+  .ai-review{font-size:15.5px;line-height:1.6;animation:fade .4s ease}
+  .ai-review p{margin-bottom:13px}
+  .ai-review p:last-child{margin-bottom:0}
+  .ai-foot{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .ai-foot svg{width:13px;height:13px;color:var(--accent)}
+  .ai-loading{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:14px;padding:6px 0}
+  .ai-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
   /* ============ REVIEW ============ */
   .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;padding:3px;gap:2px}
   .seg button{padding:7px 15px;border-radius:8px;font-weight:650;font-size:13.5px;color:var(--muted);transition:.14s}
@@ -469,6 +500,16 @@
     <div><div class="lbl">Demo data</div><div class="sub">Fill ~10 weeks to explore</div></div>
     <button class="btn primary" id="btn-demo">Load demo</button>
   </div>
+  <div class="ai-panel">
+    <div class="set-row" style="border:none;padding-bottom:6px">
+      <div><div class="lbl">AI review <span class="tag-adv">advanced</span></div><div class="sub">Let Claude write a richer review from your data</div></div>
+      <button class="switch" id="ai-switch" aria-label="Enable AI review"></button>
+    </div>
+    <div id="ai-fields" style="display:none">
+      <input class="key-input" id="ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-… your Anthropic API key" />
+      <p class="ai-note">Off by default. When you tap <b>Write with AI</b> on the Review tab, your summary numbers and journal lines for that period are sent to Anthropic to write the review — it costs a few cents each and needs your own key. The key is stored only on this device and is never included in your data export. Get a key at <span class="mono">platform.claude.com</span>. Everything else in this app stays fully offline.</p>
+    </div>
+  </div>
   <div class="set-row">
     <div><div class="lbl" style="color:var(--bad)">Erase everything</div><div class="sub">Cannot be undone</div></div>
     <button class="btn danger" id="btn-clear">Erase</button>
@@ -498,6 +539,8 @@ let noteOpen = false;
 let habitEdit = false;
 let reviewPeriod = "week";
 let deferredInstall = null;
+let hideBackup = false;
+let AI = loadAI();
 
 function load(){
   try{
@@ -512,6 +555,10 @@ function normalize(p){
   return p;
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast("Storage full — export a backup"); } }
+// AI config lives in its OWN storage key so it never rides along in a data export.
+function loadAI(){ try{ const r=localStorage.getItem("ledger.ai"); if(r){ const p=JSON.parse(r); return {enabled:!!p.enabled, key:p.key||""}; } }catch(e){} return {enabled:false, key:""}; }
+function saveAI(){ try{ localStorage.setItem("ledger.ai", JSON.stringify(AI)); }catch(e){} }
+function aiReady(){ return !!(AI.enabled && AI.key && AI.key.trim().length>10); }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 
 // ============================================================
@@ -556,6 +603,16 @@ function streak(){
   while(dayHasContent(day(k))){ n++; k=addDays(k,-1); }
   return n;
 }
+// longest run of consecutive logged days, ever
+function bestStreak(){
+  const keys=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).sort();
+  let best=0, run=0, prev=null;
+  for(const k of keys){ run = (prev && k===addDays(prev,1)) ? run+1 : 1; if(run>best) best=run; prev=k; }
+  return best;
+}
+function totalLogged(){ return Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).length; }
+function daysSince(k){ if(!k) return Infinity; return Math.round((parseKey(todayKey())-parseKey(k))/86400000); }
+function shouldRemindBackup(){ return !hideBackup && totalLogged()>=7 && daysSince(S.settings.lastBackup) >= 14; }
 
 // ============================================================
 //  MOOD SEMANTICS
@@ -614,6 +671,9 @@ const I = {
   coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>',
   search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
   book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.1L20 10l-6.3 1.9L12 18l-1.7-6.1L4 10l6.3-1.9z"/><path d="M19 3l.7 2.3L22 6l-2.3.7L19 9l-.7-2.3L16 6l2.3-.7z" opacity=".7"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
 };
 
 // ============================================================
@@ -656,13 +716,17 @@ function renderToday(){
         <div class="day-sub">${isToday(k)?fmtLong(k):""}</div>
       </div>
       <div class="date-nav">
+        <button id="d-cal" aria-label="Jump to a date">${I.cal}</button>
         <button id="d-prev" aria-label="Previous day">${I.chev_l}</button>
         <button id="d-next" aria-label="Next day" ${isToday(k)?"disabled":""}>${I.chev_r}</button>
+        <input type="date" id="date-jump" max="${todayKey()}" value="${k}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" tabindex="-1" />
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
       <span class="streak">${I.flame}${st>0?st+" day"+(st>1?"s":"")+" logged":"Start a streak"}</span>
     </div>
+    ${totalLogged()===0 ? `<div class="hint" style="margin:-8px 0 18px">Welcome. Log today below — after a few days your Insights and Review come alive.</div>` : ""}
+    ${shouldRemindBackup() ? `<div class="nudge" id="backup-nudge">${I.shield}<div class="nudge-body"><b>Back up your journal</b><span>Your entries live only on this device. Export a copy so you never lose them.</span></div><button class="btn" id="nudge-export">Export</button><button class="nudge-x" id="nudge-dismiss" aria-label="Dismiss">×</button></div>` : ""}
 
     <div class="card">
       <div class="field">
@@ -756,6 +820,12 @@ function wireToday(){
   const k = curDate;
   document.getElementById("d-prev").onclick=()=>{ curDate=addDays(k,-1); renderToday(); };
   const nx=document.getElementById("d-next"); if(nx&&!nx.disabled) nx.onclick=()=>{ if(!isFuture(addDays(k,1))){ curDate=addDays(k,1); renderToday(); } };
+  const jump=document.getElementById("date-jump");
+  document.getElementById("d-cal").onclick=()=>{ try{ jump.showPicker(); }catch(e){ jump.focus(); jump.click(); } };
+  jump.onchange=()=>{ if(jump.value && !isFuture(jump.value)){ curDate=jump.value; renderToday(); } };
+  // backup nudge
+  const nd=document.getElementById("nudge-dismiss"); if(nd) nd.onclick=()=>{ hideBackup=true; renderToday(); };
+  const ne=document.getElementById("nudge-export"); if(ne) ne.onclick=()=>doExport();
 
   // mood
   document.querySelectorAll("[data-mood]").forEach(b=>b.onclick=()=>{
@@ -863,7 +933,7 @@ function renderInsights(){
 
   el.innerHTML=`
     <div class="tiles">
-      ${tile("Streak", streak()||"0", streak()===1?"day":"days", null)}
+      ${tile("Streak", streak()||"0", streak()===1?"day":"days", (function(){const b=bestStreak();return b>streak()?`<div class="d flat">best ${b}</div>`:null;})())}
       ${tile("Mood · 7d", mood7?mood7.toFixed(1):"—", mood7?"/ 5":"", delta(mood7,moodPrev,1,false))}
       ${tile("Sleep · 7d", sleep7?sleep7.toFixed(1):"—", "hrs", delta(sleep7,sleepPrev,1,false))}
       ${tile("Spent · "+MO[parseKey(todayKey()).getMonth()], money(mSpend,true), "", null)}
@@ -1117,6 +1187,7 @@ function renderReview(){
         ${R.kv}
         ${R.paras.map(p=>`<p>${p}</p>`).join("")}
       </div>
+      ${aiReady()?`<div class="ai-block"><button class="btn primary" id="ai-btn">${I.spark}Write with AI</button><div id="ai-out" style="margin-top:14px"></div></div>`:""}
     </div>
     <div class="chart-card" style="margin-top:14px">
       <div class="chart-head"><div class="t">Your year</div><div class="s">each square is a day · colored by mood</div></div>
@@ -1124,10 +1195,77 @@ function renderReview(){
     </div>
   `;
   wireReviewSeg();
+  const ab=document.getElementById("ai-btn"); if(ab) ab.onclick=()=>runAIReview(reviewPeriod);
   yearHeat(document.getElementById("year-heat"));
 }
 function wireReviewSeg(){
   document.querySelectorAll("#rseg [data-rp]").forEach(b=>b.onclick=()=>{ reviewPeriod=b.dataset.rp; renderReview(); });
+}
+
+// ---- AI REVIEW (opt-in, bring-your-own Anthropic key) ----
+function round1(v){ return v==null?null:Math.round(v*10)/10; }
+function aiPayload(period){
+  const isWeek=period==="week", N=isWeek?7:30;
+  const cur=seriesBack(N), prev=seriesBack(N*2).slice(0,N);
+  const g=(arr,f)=>arr.map(x=>x.d?f(x.d):null);
+  return {
+    period: isWeek?"the past 7 days":"the past 30 days",
+    days_logged: cur.filter(x=>dayHasContent(x.d)).length+" of "+N,
+    avg_mood_out_of_5: round1(avg(g(cur,d=>d.mood))),
+    avg_mood_previous_period: round1(avg(g(prev,d=>d.mood))),
+    avg_sleep_hours: round1(avg(g(cur,d=>d.sleep))),
+    avg_sleep_previous_period: round1(avg(g(prev,d=>d.sleep))),
+    workouts: cur.filter(x=>x.d&&x.d.workout).length,
+    workouts_previous_period: prev.filter(x=>x.d&&x.d.workout).length,
+    total_spend: sum(g(cur,d=>d.spend))>0 ? money(sum(g(cur,d=>d.spend))) : null,
+    habits: S.habits.map(h=>({name:h.name, days_done: cur.filter(x=>x.d&&x.d.habits&&x.d.habits[h.id]).length})),
+    daily_mood: cur.filter(x=>x.d&&x.d.mood).map(x=>({day:relLabel(x.k), mood:MOOD_LABELS[x.d.mood-1]})),
+    journal_lines: cur.filter(x=>x.d&&x.d.journal&&x.d.journal.trim()).map(x=>({day:relLabel(x.k), text:x.d.journal.trim()}))
+  };
+}
+async function runAIReview(period){
+  const btn=document.getElementById("ai-btn"), out=document.getElementById("ai-out");
+  if(!aiReady()){ toast("Add your API key in Settings"); return; }
+  btn.disabled=true; btn.style.opacity=".6";
+  out.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span>Claude is reading ${period==="week"?"your week":"your month"}…</div>`;
+  const sys="You are a warm, perceptive journaling companion writing a private "+(period==="week"?"weekly":"monthly")+" review for one person, addressed as \"you\". Ground every statement ONLY in the data provided — never invent events, numbers, or feelings that aren't there; if something wasn't logged, don't mention it. Be honest and specific rather than flattering: it's okay to gently name a hard stretch. Notice patterns across the numbers and the journal lines (for example how sleep, mood, movement, or spending move together) but describe them as gentle observations, not certainties. Write 3 to 5 short paragraphs of plain prose — no headings, no lists, no markdown. Never give medical, clinical, or financial advice. End on a grounded, kind, forward-looking note.";
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{
+        "content-type":"application/json",
+        "x-api-key":AI.key.trim(),
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      body:JSON.stringify({
+        model:"claude-opus-4-8",
+        max_tokens:1024,
+        output_config:{effort:"low"},
+        system:sys,
+        messages:[{role:"user",content:"Here is my logged data. Please write my review.\n\n"+JSON.stringify(aiPayload(period),null,2)}]
+      })
+    });
+    if(!res.ok){
+      let msg="Something went wrong ("+res.status+").";
+      if(res.status===401) msg="That API key was rejected. Double-check it in Settings.";
+      else if(res.status===429) msg="Rate limited — give it a moment and try again.";
+      else if(res.status===400) msg="Request rejected (400). Your key may not have access to this model.";
+      else if(res.status===529) msg="Anthropic is busy right now — try again shortly.";
+      out.innerHTML=`<div class="hint" style="color:var(--bad)">${msg}</div>`; return;
+    }
+    const j=await res.json();
+    const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    if(!text){ out.innerHTML=`<div class="hint">No response came back — try again.</div>`; return; }
+    out.innerHTML=`<div class="ai-review">${text.split(/\n\n+/).map(p=>`<p>${escapeHtml(p)}</p>`).join("")}</div>
+      <div class="ai-foot">${I.spark}Written by Claude from your own data · <button class="linkbtn" id="ai-again">rewrite</button></div>`;
+    const again=document.getElementById("ai-again"); if(again) again.onclick=()=>runAIReview(period);
+    btn.innerHTML=`${I.spark}Write again`;
+  }catch(e){
+    out.innerHTML=`<div class="hint" style="color:var(--bad)">Couldn't reach Claude — check your connection and try again.</div>`;
+  }finally{
+    btn.disabled=false; btn.style.opacity="";
+  }
 }
 
 function buildReview(period){
@@ -1373,9 +1511,16 @@ function refreshSettings(){
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.classList.toggle("on", (b.dataset.themeSet||"")===(S.settings.theme||"")));
   document.getElementById("cur-sel").value=S.settings.currency||"$";
   document.getElementById("install-row").style.display = deferredInstall ? "" : "none";
+  document.getElementById("ai-switch").classList.toggle("on", AI.enabled);
+  document.getElementById("ai-fields").style.display = AI.enabled ? "" : "none";
+  document.getElementById("ai-key").value = AI.key || "";
 }
 document.querySelectorAll("[data-theme-set]").forEach(b=>b.onclick=()=>{ setTheme(b.dataset.themeSet||""); refreshSettings(); });
 document.getElementById("cur-sel").onchange=function(){ S.settings.currency=this.value; save(); render(); };
+// AI review config
+document.getElementById("ai-switch").onclick=()=>{ AI.enabled=!AI.enabled; saveAI(); refreshSettings(); if(curTab==="review") renderReview(); };
+document.getElementById("ai-key").oninput=function(){ AI.key=this.value.trim(); saveAI(); };
+document.getElementById("ai-key").addEventListener("change", ()=>{ if(curTab==="review") renderReview(); });
 function setTheme(t){ S.settings.theme=t; document.documentElement.setAttribute("data-theme", t); save(); updateThemeMeta(); }
 function updateThemeMeta(){
   const t=S.settings.theme;
@@ -1396,12 +1541,15 @@ document.getElementById("btn-install").onclick=async()=>{
 document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && sheet.classList.contains("show")) closeSheet(); });
 
 // export / import / demo / clear
-document.getElementById("btn-export").onclick=()=>{
+function doExport(){
   const blob=new Blob([JSON.stringify(S,null,2)], {type:"application/json"});
   const url=URL.createObjectURL(blob); const a=document.createElement("a");
   a.href=url; a.download="ledger-of-days-"+todayKey()+".json"; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000); toast("Backup downloaded");
-};
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  S.settings.lastBackup=todayKey(); hideBackup=true; save(); toast("Backup downloaded");
+  if(curTab==="today") renderToday();
+}
+document.getElementById("btn-export").onclick=doExport;
 document.getElementById("btn-import").onclick=()=>document.getElementById("file-import").click();
 document.getElementById("file-import").onchange=function(){
   const f=this.files[0]; if(!f) return;
