@@ -265,9 +265,6 @@
   .note-toggle{margin-top:10px;font-size:13px;font-weight:600;color:var(--accent);display:inline-flex;align-items:center;gap:5px}
   .note-toggle svg{width:14px;height:14px}
 
-  .saved-tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--good-ink);opacity:0;transition:.3s}
-  .saved-tag.show{opacity:1}
-  .saved-tag svg{width:14px;height:14px}
 
   /* ============ STAT TILES ============ */
   .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -665,7 +662,6 @@ function renderToday(){
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
       <span class="streak">${I.flame}${st>0?st+" day"+(st>1?"s":"")+" logged":"Start a streak"}</span>
-      <span class="saved-tag" id="saved">${I.check}Saved</span>
     </div>
 
     <div class="card">
