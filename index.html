@@ -245,6 +245,18 @@
   html[data-theme="dark"] .chip.on .dot svg{color:#22b53c}
   .chip-add{border-style:dashed;color:var(--muted)}
   .chip-add:hover{color:var(--accent);border-color:var(--accent)}
+  .chip-edit{display:inline-flex;align-items:center;gap:0;padding:0;overflow:hidden}
+  .chip-edit .hname{padding:9px 4px 9px 13px;font-weight:600;font-size:14px;color:var(--ink);background:none}
+  .chip-edit .hname:hover{color:var(--accent)}
+  .chip-x{width:30px;align-self:stretch;font-size:18px;line-height:1;color:var(--muted);border-left:1.5px solid var(--border)}
+  .chip-x:hover{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+  .linkbtn{font-size:13px;font-weight:650;color:var(--accent);padding:2px 2px}
+  .linkbtn:hover{text-decoration:underline}
+  /* keyboard focus rings (mouse users unaffected) */
+  :focus{outline:none}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,.tab:focus-visible,.chip:focus-visible,.mood:focus-visible,.pip:focus-visible{
+    outline:2.5px solid var(--accent);outline-offset:2px;border-radius:8px;
+  }
 
   /* journal input */
   .oneline{width:100%;border:1.5px solid var(--border);border-radius:12px;background:var(--surface-2);padding:14px;font-size:16px;font-weight:500;resize:none;line-height:1.5;transition:.14s}
@@ -430,6 +442,10 @@
   <div class="grab"></div>
   <h3>Settings</h3>
   <p class="hint" style="margin-bottom:8px">Everything lives on this device. Nothing is ever uploaded.</p>
+  <div class="set-row" id="install-row" style="display:none">
+    <div><div class="lbl">Install app</div><div class="sub">Add to your home screen — opens full-screen, works offline</div></div>
+    <button class="btn primary" id="btn-install">Install</button>
+  </div>
   <div class="set-row">
     <div><div class="lbl">Appearance</div><div class="sub">Match system, or pick</div></div>
     <div class="theme-seg" id="theme-seg">
@@ -482,7 +498,9 @@ let S = load();
 let curDate = todayKey();
 let curTab = "today";
 let noteOpen = false;
+let habitEdit = false;
 let reviewPeriod = "week";
+let deferredInstall = null;
 
 function load(){
   try{
@@ -711,10 +729,13 @@ function renderToday(){
 
     <div class="card" style="margin-top:14px">
       <div class="field" style="margin-bottom:0">
-        <div class="flabel"><span class="name">Habits</span><span class="hint">${Object.values(dhab).filter(Boolean).length}/${habits.length} done</span></div>
+        <div class="flabel"><span class="name">Habits</span>
+          ${habits.length?`<button class="linkbtn" id="hab-edit">${habitEdit?"Done":"Edit"}</button>`:`<span class="hint">add a few</span>`}
+        </div>
         <div class="chips" id="habits">
-          ${habits.map(h=>`
-            <button class="chip ${dhab[h.id]?"on":""}" data-habit="${h.id}">
+          ${habits.map(h=> habitEdit
+            ? `<div class="chip chip-edit"><button class="hname" data-rename="${h.id}">${escapeHtml(h.name)}</button><button class="chip-x" data-del="${h.id}" aria-label="Delete ${escapeHtml(h.name)}">×</button></div>`
+            : `<button class="chip ${dhab[h.id]?"on":""}" data-habit="${h.id}">
               <span class="dot">${I.check}</span>${escapeHtml(h.name)}
             </button>`).join("")}
           <button class="chip chip-add" id="add-habit">${I.plus}Habit</button>
@@ -725,7 +746,7 @@ function renderToday(){
     <div class="card" style="margin-top:14px">
       <div class="field" style="margin-bottom:0">
         <div class="flabel"><span class="name">Today in one line</span></div>
-        <textarea class="oneline" id="journal" rows="1" maxlength="280" placeholder="The one thing worth remembering…">${escapeHtml(d.journal||"")}</textarea>
+        <textarea class="oneline" id="journal" rows="1" maxlength="280" placeholder="${journalPrompt(k)}">${escapeHtml(d.journal||"")}</textarea>
         <button class="note-toggle" id="note-toggle">${I.book}${noteOpen||(d.note&&d.note.trim())?"Hide longer note":"Add a longer note"}</button>
         <textarea class="oneline note" id="note" rows="3" placeholder="More detail, if you want it…" style="${(noteOpen||(d.note&&d.note.trim()))?"margin-top:10px":"display:none"}">${escapeHtml(d.note||"")}</textarea>
       </div>
@@ -768,6 +789,16 @@ function wireToday(){
   document.querySelectorAll("[data-habit]").forEach(b=>b.onclick=()=>{
     const id=b.dataset.habit; const d=ensureDay(k); d.habits=d.habits||{};
     d.habits[id]=!d.habits[id]; commit(k); renderToday();
+  });
+  const he=document.getElementById("hab-edit"); if(he) he.onclick=()=>{ habitEdit=!habitEdit; renderToday(); };
+  document.querySelectorAll("[data-rename]").forEach(b=>b.onclick=()=>{
+    const h=S.habits.find(x=>x.id===b.dataset.rename); if(!h) return;
+    const name=prompt("Rename habit:", h.name); if(name&&name.trim()){ h.name=name.trim().slice(0,24); save(); renderToday(); }
+  });
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const h=S.habits.find(x=>x.id===b.dataset.del); if(!h) return;
+    if(!confirm("Remove “"+h.name+"”? Past days keep their record.")) return;
+    S.habits=S.habits.filter(x=>x.id!==h.id); if(!S.habits.length) habitEdit=false; save(); renderToday();
   });
   document.getElementById("add-habit").onclick=addHabitFlow;
   // journal
@@ -1345,11 +1376,28 @@ function refreshSettings(){
   document.getElementById("data-sub").textContent = n+" "+(n===1?"day":"days")+" logged";
   document.querySelectorAll("[data-theme-set]").forEach(b=>b.classList.toggle("on", (b.dataset.themeSet||"")===(S.settings.theme||"")));
   document.getElementById("cur-sel").value=S.settings.currency||"$";
+  document.getElementById("install-row").style.display = deferredInstall ? "" : "none";
 }
 document.querySelectorAll("[data-theme-set]").forEach(b=>b.onclick=()=>{ setTheme(b.dataset.themeSet||""); refreshSettings(); });
 document.getElementById("cur-sel").onchange=function(){ S.settings.currency=this.value; save(); render(); };
 function setTheme(t){ S.settings.theme=t; document.documentElement.setAttribute("data-theme", t); save(); updateThemeMeta(); }
-function updateThemeMeta(){ /* meta theme-color handled by media queries; nothing needed */ }
+function updateThemeMeta(){
+  const t=S.settings.theme;
+  const dark = t==="dark" || (t!=="light" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+  let m=document.querySelector('meta[name="theme-color"]:not([media])');
+  if(!m){ m=document.createElement("meta"); m.setAttribute("name","theme-color"); document.head.appendChild(m); }
+  m.setAttribute("content", dark ? "#0c0c0b" : "#f4f3ef");
+}
+// PWA install
+window.addEventListener("beforeinstallprompt", (e)=>{ e.preventDefault(); deferredInstall=e; const r=document.getElementById("install-row"); if(sheet.classList.contains("show")) r.style.display=""; });
+window.addEventListener("appinstalled", ()=>{ deferredInstall=null; const r=document.getElementById("install-row"); if(r) r.style.display="none"; toast("Installed — find it on your home screen"); });
+document.getElementById("btn-install").onclick=async()=>{
+  if(!deferredInstall){ toast("Use your browser's Add to Home Screen"); return; }
+  deferredInstall.prompt(); try{ await deferredInstall.userChoice; }catch(e){}
+  deferredInstall=null; document.getElementById("install-row").style.display="none";
+};
+// keyboard: Escape closes the settings sheet
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && sheet.classList.contains("show")) closeSheet(); });
 
 // export / import / demo / clear
 document.getElementById("btn-export").onclick=()=>{
@@ -1417,6 +1465,8 @@ function seedDemo(){
 //  MISC
 // ============================================================
 function escapeHtml(s){ return (s==null?"":String(s)).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const PROMPTS=["The one thing worth remembering…","What made today, today?","A small moment you don't want to lose…","What are you glad happened?","If today had a title, what is it?","One thing you learned or noticed…","What took up your headspace today?","Something you're grateful for…","How did today actually feel?","A win, however small…"];
+function journalPrompt(k){ const d=parseKey(k); const idx=(d.getFullYear()*372 + d.getMonth()*31 + d.getDate()) % PROMPTS.length; return PROMPTS[idx]; }
 let toastT=null;
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200); }
 
@@ -1425,6 +1475,8 @@ function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg
 // ============================================================
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 if(S.settings.theme) document.documentElement.setAttribute("data-theme", S.settings.theme);
+updateThemeMeta();
+if(window.matchMedia) try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateThemeMeta); }catch(e){}
 switchTab("today");
 window.addEventListener("resize", ()=>{ if(curTab!=="today") render(); });
 
