@@ -252,6 +252,44 @@
   .chip-x:hover{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
   .linkbtn{font-size:13px;font-weight:650;color:var(--accent);padding:2px 2px}
   .linkbtn:hover{text-decoration:underline}
+
+  /* on this day */
+  .flashback{padding:14px 16px}
+  .fb-head{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .fb-head svg{width:15px;height:15px}
+  .fb-row{display:flex;align-items:center;gap:11px;width:100%;padding:9px 0;border-top:1px solid var(--border);text-align:left}
+  .fb-row:first-of-type{border-top:none}
+  .fb-face{width:20px;height:20px;flex:none;display:grid;place-items:center}
+  .fb-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .fb-when{font-size:11.5px;font-weight:650;color:var(--muted)}
+  .fb-line{font-size:14.5px;font-weight:550;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fb-row > svg{width:16px;height:16px;color:var(--muted);flex:none}
+  .fb-row:hover .fb-line{color:var(--accent)}
+
+  /* custom trackers */
+  .trk-list{display:flex;flex-direction:column;gap:16px}
+  .trk-item{}
+  .trk-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;font-weight:650;font-size:15px;letter-spacing:-.01em}
+  .trk-label .val{font-weight:650;font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .trk-label .val em{color:var(--muted);font-style:normal;font-weight:500;font-size:12px}
+  .trk-step .big{display:flex;align-items:center;justify-content:center;gap:3px}
+  .trk-num{width:72px;text-align:center;font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;border:none;background:none;padding:0;-moz-appearance:textfield}
+  .trk-num:focus{outline:none}
+  .trk-num::-webkit-outer-spin-button,.trk-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .trk-item.trk-edit{display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-2)}
+  .trk-edit .hname{flex:1;text-align:left;padding:11px 13px;font-weight:600;font-size:14.5px;color:var(--ink);background:none}
+  .trk-edit .hname:hover{color:var(--accent)}
+  .trk-type{font-size:12px;font-weight:600;color:var(--muted);padding:0 12px}
+  .trk-edit .chip-x{height:44px;display:grid;place-items:center}
+  .trk-add-form{background:var(--surface-2);border:1px solid var(--border);border-radius:13px;padding:14px}
+
+  /* journal tags */
+  .jtag{color:var(--accent);font-weight:650}
+  .tag-bar{display:flex;gap:7px;overflow-x:auto;padding:14px 2px 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tag-bar::-webkit-scrollbar{display:none}
+  .tag-chip{flex:none;padding:6px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--ink-2);transition:.14s;white-space:nowrap}
+  .tag-chip:hover{border-color:var(--border-strong)}
+  .tag-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
   /* keyboard focus rings (mouse users unaffected) */
   :focus{outline:none}
   button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,.tab:focus-visible,.chip:focus-visible,.mood:focus-visible,.pip:focus-visible{
@@ -411,6 +449,9 @@
   .theme-seg button{padding:6px 11px;border-radius:7px;font-size:12.5px;font-weight:650;color:var(--muted)}
   .theme-seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
   select.cur-sel{padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-2);font-weight:600;font-size:14px}
+  .hide-toggles{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:230px}
+  .hide-toggles button{padding:6px 11px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface-2);font-size:12.5px;font-weight:600;color:var(--muted)}
+  .hide-toggles button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 
   /* toast */
   .toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);z-index:80;background:var(--ink);color:var(--page);padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:.25s}
@@ -497,6 +538,15 @@
     </select>
   </div>
   <div class="set-row">
+    <div><div class="lbl">Show on Today</div><div class="sub">Hide the built-in trackers you don't use</div></div>
+    <div class="hide-toggles" id="hide-toggles">
+      <button data-hide="sleep">Sleep</button>
+      <button data-hide="energy">Energy</button>
+      <button data-hide="workout">Workout</button>
+      <button data-hide="spend">Spending</button>
+    </div>
+  </div>
+  <div class="set-row">
     <div><div class="lbl">Your data</div><div class="sub" id="data-sub">— entries</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn" id="btn-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
@@ -544,6 +594,10 @@ let curDate = todayKey();
 let curTab = "today";
 let noteOpen = false;
 let habitEdit = false;
+let trackerEdit = false;
+let trackerAdd = false;
+let addType = "count";
+let journalTag = "";
 let reviewPeriod = "week";
 let deferredInstall = null;
 let hideBackup = false;
@@ -554,11 +608,13 @@ function load(){
     const raw = localStorage.getItem(KEY);
     if(raw){ const p = JSON.parse(raw); if(p && p.days) return normalize(p); }
   }catch(e){}
-  return { version:1, created:todayKey(), days:{}, habits:clone(DEFAULT_HABITS), settings:{theme:"", currency:"$"} };
+  return { version:1, created:todayKey(), days:{}, habits:clone(DEFAULT_HABITS), trackers:[], settings:{theme:"", currency:"$", hide:{}} };
 }
 function normalize(p){
   p.days = p.days||{}; p.habits = p.habits&&p.habits.length?p.habits:clone(DEFAULT_HABITS);
-  p.settings = Object.assign({theme:"",currency:"$"}, p.settings||{});
+  p.trackers = Array.isArray(p.trackers)?p.trackers:[];
+  p.settings = Object.assign({theme:"",currency:"$",hide:{}}, p.settings||{});
+  p.settings.hide = p.settings.hide||{};
   return p;
 }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ toast("Storage full — export a backup"); } }
@@ -576,8 +632,40 @@ function keyOf(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getD
 function todayKey(){ return keyOf(new Date()); }
 function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
 function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return keyOf(d); }
+function monthsAgo(k,n){ const d=parseKey(k); const day=d.getDate(); d.setDate(1); d.setMonth(d.getMonth()-n); const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(); d.setDate(Math.min(day,last)); return keyOf(d); }
 function isToday(k){ return k===todayKey(); }
 function isFuture(k){ return parseKey(k) > parseKey(todayKey()); }
+
+// ---- "On this day": past entries worth resurfacing (must have a written line) ----
+function flashbacks(){
+  const t=todayKey();
+  const points=[
+    {label:"A week ago", k:addDays(t,-7)},
+    {label:"A month ago", k:monthsAgo(t,1)},
+    {label:"3 months ago", k:monthsAgo(t,3)},
+    {label:"6 months ago", k:monthsAgo(t,6)},
+    {label:"A year ago", k:monthsAgo(t,12)},
+    {label:"2 years ago", k:monthsAgo(t,24)},
+  ];
+  const out=[];
+  for(const p of points){ const d=S.days[p.k]; if(d && ((d.journal&&d.journal.trim())||(d.note&&d.note.trim()))) out.push({...p, d}); }
+  return out.slice(0,3);
+}
+
+// ---- Hashtag journal tags ----
+function extractTags(text){ if(!text) return []; const m=String(text).match(/#[\p{L}\p{N}_]+/gu); return m?m.map(t=>t.toLowerCase()):[]; }
+function dayTags(d){ if(!d) return []; return [...new Set([...extractTags(d.journal), ...extractTags(d.note)])]; }
+function allTags(){ const c={}; for(const k in S.days){ dayTags(S.days[k]).forEach(t=>c[t]=(c[t]||0)+1); } return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b)); }
+function highlightTags(safeHtml){ return safeHtml.replace(/#[\p{L}\p{N}_]+/gu, m=>`<span class="jtag">${m}</span>`); }
+
+// ---- Custom trackers ----
+const BUILTINS = [
+  {id:"sleep", name:"Sleep"},
+  {id:"energy", name:"Energy"},
+  {id:"workout", name:"Workout"},
+  {id:"spend", name:"Spending"},
+];
+function hidden(id){ return !!(S.settings.hide && S.settings.hide[id]); }
 const WD = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const WDL = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -599,7 +687,8 @@ function dayHasContent(d){
   if(!d) return false;
   return d.mood!=null || d.sleep!=null || d.energy!=null || d.workout!=null ||
          d.spend!=null || (d.journal&&d.journal.trim()) || (d.note&&d.note.trim()) ||
-         (d.habits && Object.values(d.habits).some(Boolean));
+         (d.habits && Object.values(d.habits).some(Boolean)) ||
+         (d.custom && Object.values(d.custom).some(v=>v!=null&&v!==""));
 }
 function pruneIfEmpty(k){ const d=S.days[k]; if(d && !dayHasContent(d)) delete S.days[k]; }
 
@@ -715,7 +804,36 @@ function renderToday(){
   const st = streak();
   const habits = S.habits;
   const dhab = d.habits || {};
+  const dcus = d.custom || {};
   const el = views.today;
+  // built-in metric cards (each hideable via Settings)
+  const M = {
+    sleep:`<div class="card"><div class="field" style="margin-bottom:0">
+        <div class="flabel"><span class="name">Sleep</span><span class="val" id="sleep-lbl">${d.sleep!=null?d.sleep+" <em>hrs</em>":"<em>—</em>"}</span></div>
+        <div class="stepper"><button id="sl-minus">−</button><div class="big"><span id="sl-val">${d.sleep!=null?d.sleep:"—"}</span><em>hrs</em></div><button id="sl-plus">+</button></div>
+      </div></div>`,
+    energy:`<div class="card"><div class="field" style="margin-bottom:0">
+        <div class="flabel"><span class="name">Energy</span><span class="val">${d.energy?d.energy+" / 5":"<em>—</em>"}</span></div>
+        <div class="pips" id="energy">${[1,2,3,4,5].map(e=>`<button class="pip ${d.energy===e?"on":""}" data-energy="${e}">${e}</button>`).join("")}</div>
+      </div></div>`,
+    workout:`<div class="card"><div class="field" style="margin-bottom:0">
+        <div class="flabel"><span class="name">Workout</span></div>
+        <div class="toggle-row"><button class="switch ${d.workout?"on":""}" id="workout-sw" aria-label="Toggle workout"></button>
+          <span class="hint" id="wo-hint" style="${d.workout?"display:none":""}">Did you move today?</span>
+          <div id="wo-min" style="${d.workout?"display:flex":"display:none"};align-items:center;gap:8px"><input class="inline-num" id="wo-mins" type="number" inputmode="numeric" min="0" step="5" placeholder="min" value="${d.workoutMin!=null?d.workoutMin:""}" /><span class="hint">min</span></div>
+        </div>
+      </div></div>`,
+    spend:`<div class="card"><div class="field" style="margin-bottom:0">
+        <div class="flabel"><span class="name">Spending</span><span class="val">${d.spend!=null?money(d.spend):"<em>—</em>"}</span></div>
+        <div class="money"><span class="cur">${cur().trim()}</span><input id="spend" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="${d.spend!=null?(d.spend/100):""}" /></div>
+      </div></div>`,
+  };
+  const metricGrid = BUILTINS.filter(b=>!hidden(b.id)).map(b=>M[b.id]).join("");
+  const trackerCard = `<div class="card" style="margin-top:14px"><div class="field" style="margin-bottom:0">
+      <div class="flabel"><span class="name">Trackers</span>${S.trackers.length?`<button class="linkbtn" id="trk-edit">${trackerEdit?"Done":"Edit"}</button>`:""}</div>
+      ${S.trackers.length ? `<div class="trk-list">${S.trackers.map(t=>trackerRow(t, dcus[t.id])).join("")}</div>` : `<div class="hint" style="margin-bottom:12px">Track anything else that matters to you — water, steps, screen time, anxiety, anything.</div>`}
+      ${trackerAdd ? trackerAddForm() : `<button class="chip chip-add" id="trk-add-btn" style="margin-top:${S.trackers.length?"14px":"0"}">${I.plus}Tracker</button>`}
+    </div></div>`;
   el.innerHTML = `
     <div class="day-head">
       <div>
@@ -735,6 +853,15 @@ function renderToday(){
     ${totalLogged()===0 ? `<div class="hint" style="margin:-8px 0 18px">Welcome. Log today below — after a few days your Insights and Review come alive.</div>` : ""}
     ${shouldRemindBackup() ? `<div class="nudge" id="backup-nudge">${I.shield}<div class="nudge-body"><b>Back up your journal</b><span>Your entries live only on this device. Export a copy so you never lose them.</span></div><button class="btn" id="nudge-export">Export</button><button class="nudge-x" id="nudge-dismiss" aria-label="Dismiss">×</button></div>` : ""}
 
+    ${isToday(k)&&flashbacks().length ? `<div class="card flashback">
+      <div class="fb-head">${I.book}<span>On this day</span></div>
+      ${flashbacks().map(f=>`<button class="fb-row" data-fb="${f.k}">
+        <span class="fb-face">${f.d.mood?faceSVG(f.d.mood,20,moodColor(f.d.mood)):""}</span>
+        <span class="fb-body"><span class="fb-when">${f.label}</span><span class="fb-line">${escapeHtml((f.d.journal||f.d.note||"").trim())}</span></span>
+        ${I.chev_r}
+      </button>`).join("")}
+    </div>` : ""}
+
     <div class="card">
       <div class="field">
         <div class="flabel"><span class="name">How was today?</span><span class="val" id="mood-lbl">${d.mood?MOOD_LABELS[d.mood-1]:"<em>tap one</em>"}</span></div>
@@ -748,51 +875,7 @@ function renderToday(){
       </div>
     </div>
 
-    <div class="grid cols-2" style="margin-top:14px">
-      <div class="card">
-        <div class="field" style="margin-bottom:0">
-          <div class="flabel"><span class="name">Sleep</span><span class="val" id="sleep-lbl">${d.sleep!=null?d.sleep+" <em>hrs</em>":"<em>—</em>"}</span></div>
-          <div class="stepper">
-            <button id="sl-minus">−</button>
-            <div class="big"><span id="sl-val">${d.sleep!=null?d.sleep:"—"}</span><em>hrs</em></div>
-            <button id="sl-plus">+</button>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="field" style="margin-bottom:0">
-          <div class="flabel"><span class="name">Energy</span><span class="val">${d.energy?d.energy+" / 5":"<em>—</em>"}</span></div>
-          <div class="pips" id="energy">
-            ${[1,2,3,4,5].map(e=>`<button class="pip ${d.energy===e?"on":""}" data-energy="${e}">${e}</button>`).join("")}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid cols-2" style="margin-top:14px">
-      <div class="card">
-        <div class="field" style="margin-bottom:0">
-          <div class="flabel"><span class="name">Workout</span></div>
-          <div class="toggle-row">
-            <button class="switch ${d.workout?"on":""}" id="workout-sw" aria-label="Toggle workout"></button>
-            <span class="hint" id="wo-hint" style="${d.workout?"display:none":""}">Did you move today?</span>
-            <div id="wo-min" style="${d.workout?"display:flex":"display:none"};align-items:center;gap:8px">
-              <input class="inline-num" id="wo-mins" type="number" inputmode="numeric" min="0" step="5" placeholder="min" value="${d.workoutMin!=null?d.workoutMin:""}" />
-              <span class="hint">min</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="field" style="margin-bottom:0">
-          <div class="flabel"><span class="name">Spending</span><span class="val">${d.spend!=null?money(d.spend):"<em>—</em>"}</span></div>
-          <div class="money">
-            <span class="cur">${cur().trim()}</span>
-            <input id="spend" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="${d.spend!=null?(d.spend/100):""}" />
-          </div>
-        </div>
-      </div>
-    </div>
+    ${metricGrid ? `<div class="grid cols-2" style="margin-top:14px">${metricGrid}</div>` : ""}
 
     <div class="card" style="margin-top:14px">
       <div class="field" style="margin-bottom:0">
@@ -809,6 +892,8 @@ function renderToday(){
         </div>
       </div>
     </div>
+
+    ${trackerCard}
 
     <div class="card" style="margin-top:14px">
       <div class="field" style="margin-bottom:0">
@@ -844,20 +929,24 @@ function wireToday(){
     const e=+b.dataset.energy; const d=ensureDay(k);
     d.energy = d.energy===e ? null : e; commit(k); renderToday();
   });
-  // sleep
-  const sleepStep=(delta)=>{ const d=ensureDay(k); let v=d.sleep!=null?d.sleep:7; v=Math.max(0,Math.min(16, Math.round((v+delta)*2)/2)); d.sleep=v; commit(k);
-    document.getElementById("sl-val").textContent=v; document.getElementById("sleep-lbl").innerHTML=v+" <em>hrs</em>"; flashSaved(); };
-  document.getElementById("sl-minus").onclick=()=>sleepStep(-0.5);
-  document.getElementById("sl-plus").onclick=()=>sleepStep(0.5);
-  // workout
-  document.getElementById("workout-sw").onclick=function(){
-    const d=ensureDay(k); d.workout=!d.workout; if(!d.workout) d.workoutMin=null;
-    commit(k); renderToday();
-  };
+  // flashbacks — tap to jump to that day
+  document.querySelectorAll("[data-fb]").forEach(b=>b.onclick=()=>{ curDate=b.dataset.fb; renderToday(); });
+  // sleep (may be hidden)
+  const slMinus=document.getElementById("sl-minus");
+  if(slMinus){
+    const sleepStep=(delta)=>{ const d=ensureDay(k); let v=d.sleep!=null?d.sleep:7; v=Math.max(0,Math.min(16, Math.round((v+delta)*2)/2)); d.sleep=v; commit(k);
+      document.getElementById("sl-val").textContent=v; document.getElementById("sleep-lbl").innerHTML=v+" <em>hrs</em>"; };
+    slMinus.onclick=()=>sleepStep(-0.5);
+    document.getElementById("sl-plus").onclick=()=>sleepStep(0.5);
+  }
+  // workout (may be hidden)
+  const wsw=document.getElementById("workout-sw");
+  if(wsw) wsw.onclick=function(){ const d=ensureDay(k); d.workout=!d.workout; if(!d.workout) d.workoutMin=null; commit(k); renderToday(); };
   const wm=document.getElementById("wo-mins"); if(wm) wm.oninput=()=>{ const d=ensureDay(k); d.workoutMin = wm.value===""?null:Math.max(0,+wm.value); commit(k, true); };
-  // spend
+  // spend (may be hidden)
   const sp=document.getElementById("spend");
-  sp.oninput=()=>{ const d=ensureDay(k); d.spend = sp.value===""?null:Math.round(parseFloat(sp.value)*100); if(isNaN(d.spend)) d.spend=null; commit(k, true); };
+  if(sp) sp.oninput=()=>{ const d=ensureDay(k); d.spend = sp.value===""?null:Math.round(parseFloat(sp.value)*100); if(isNaN(d.spend)) d.spend=null; commit(k, true); };
+  wireTrackers(k);
   // habits
   document.querySelectorAll("[data-habit]").forEach(b=>b.onclick=()=>{
     const id=b.dataset.habit; const d=ensureDay(k); d.habits=d.habits||{};
@@ -901,6 +990,76 @@ function addHabitFlow(){
   if(!name||!name.trim()) return;
   const id="h"+Date.now().toString(36);
   S.habits.push({id, name:name.trim().slice(0,24)}); save(); renderToday();
+}
+
+// ---- custom tracker rendering ----
+function trackerRow(t, val){
+  if(trackerEdit){
+    return `<div class="trk-item trk-edit"><button class="hname" data-trk-rename="${t.id}">${escapeHtml(t.name)}</button><span class="trk-type">${t.type==="scale"?"1–5":(t.unit?escapeHtml(t.unit):"number")}</span><button class="chip-x" data-trk-del="${t.id}" aria-label="Delete ${escapeHtml(t.name)}">×</button></div>`;
+  }
+  if(t.type==="scale"){
+    return `<div class="trk-item"><div class="trk-label"><span>${escapeHtml(t.name)}</span><span class="val">${val?val+" / 5":"<em>—</em>"}</span></div>
+      <div class="pips">${[1,2,3,4,5].map(n=>`<button class="pip ${val===n?"on":""}" data-trk="${t.id}" data-trk-val="${n}">${n}</button>`).join("")}</div></div>`;
+  }
+  return `<div class="trk-item"><div class="trk-label"><span>${escapeHtml(t.name)}</span><span class="val">${val!=null?val+(t.unit?" <em>"+escapeHtml(t.unit)+"</em>":""):"<em>—</em>"}</span></div>
+    <div class="stepper trk-step"><button data-trk-step="${t.id}" data-trk-d="-1">−</button><div class="big"><input class="trk-num" data-trk-num="${t.id}" type="number" inputmode="decimal" value="${val!=null?val:""}" placeholder="0" />${t.unit?`<em>${escapeHtml(t.unit)}</em>`:""}</div><button data-trk-step="${t.id}" data-trk-d="1">+</button></div></div>`;
+}
+function trackerAddForm(){
+  return `<div class="trk-add-form">
+    <input id="trk-name" class="key-input" style="font-family:inherit;margin:0" placeholder="Tracker name — e.g. Water" maxlength="20" />
+    <div class="seg" id="trk-type" style="margin-top:9px">
+      <button data-ttype="count" class="${addType==="count"?"on":""}">Number</button>
+      <button data-ttype="scale" class="${addType==="scale"?"on":""}">1–5 scale</button>
+    </div>
+    <input id="trk-unit" class="key-input" style="font-family:inherit;margin-top:9px;margin-bottom:0;${addType==="scale"?"display:none":""}" placeholder="Unit — optional, e.g. glasses" maxlength="12" />
+    <div style="display:flex;gap:8px;margin-top:11px">
+      <button class="btn primary" id="trk-save">Add tracker</button>
+      <button class="btn" id="trk-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+function wireTrackers(k){
+  const te=document.getElementById("trk-edit"); if(te) te.onclick=()=>{ trackerEdit=!trackerEdit; renderToday(); };
+  document.querySelectorAll("[data-trk-val]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.trk, v=+b.dataset.trkVal; const d=ensureDay(k); d.custom=d.custom||{};
+    d.custom[id] = d.custom[id]===v ? null : v; commit(k); renderToday();
+  });
+  document.querySelectorAll("[data-trk-step]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.trkStep, dir=+b.dataset.trkD; const d=ensureDay(k); d.custom=d.custom||{};
+    let v=(d.custom[id]!=null?+d.custom[id]:0)+dir; if(v<0)v=0; d.custom[id]=v; commit(k); renderToday();
+  });
+  document.querySelectorAll("[data-trk-num]").forEach(inp=>inp.oninput=()=>{
+    const id=inp.dataset.trkNum; const d=ensureDay(k); d.custom=d.custom||{};
+    let v=inp.value===""?null:Math.max(0, parseFloat(inp.value)); if(v!=null&&isNaN(v)) v=null;
+    d.custom[id]=v; commit(k, true);
+    const t=S.trackers.find(x=>x.id===id), lbl=inp.closest(".trk-item").querySelector(".trk-label .val");
+    if(lbl) lbl.innerHTML = v!=null ? v+(t&&t.unit?" <em>"+escapeHtml(t.unit)+"</em>":"") : "<em>—</em>";
+  });
+  document.querySelectorAll("[data-trk-rename]").forEach(b=>b.onclick=()=>{
+    const t=S.trackers.find(x=>x.id===b.dataset.trkRename); if(!t) return;
+    const name=prompt("Rename tracker:", t.name); if(name&&name.trim()){ t.name=name.trim().slice(0,20); save(); renderToday(); }
+  });
+  document.querySelectorAll("[data-trk-del]").forEach(b=>b.onclick=()=>{
+    const t=S.trackers.find(x=>x.id===b.dataset.trkDel); if(!t) return;
+    if(!confirm("Remove “"+t.name+"”? Past days keep their recorded values.")) return;
+    S.trackers=S.trackers.filter(x=>x.id!==t.id); if(!S.trackers.length) trackerEdit=false; save(); renderToday();
+  });
+  const ab=document.getElementById("trk-add-btn"); if(ab) ab.onclick=()=>{ trackerAdd=true; addType="count"; renderToday(); const n=document.getElementById("trk-name"); if(n) n.focus(); };
+  // type toggle mutates the DOM directly so the typed name isn't lost to a re-render
+  document.querySelectorAll("#trk-type [data-ttype]").forEach(b=>b.onclick=()=>{
+    addType=b.dataset.ttype;
+    document.querySelectorAll("#trk-type [data-ttype]").forEach(x=>x.classList.toggle("on", x.dataset.ttype===addType));
+    const u=document.getElementById("trk-unit"); if(u) u.style.display = addType==="scale"?"none":"";
+  });
+  const cancel=document.getElementById("trk-cancel"); if(cancel) cancel.onclick=()=>{ trackerAdd=false; renderToday(); };
+  const saveBtn=document.getElementById("trk-save"); if(saveBtn) saveBtn.onclick=()=>{
+    const name=(document.getElementById("trk-name").value||"").trim();
+    if(!name){ toast("Give your tracker a name"); return; }
+    const uEl=document.getElementById("trk-unit");
+    const unit=(addType==="count"&&uEl)?(uEl.value||"").trim().slice(0,12):"";
+    S.trackers.push({id:"t"+Date.now().toString(36), name:name.slice(0,20), type:addType, unit});
+    trackerAdd=false; save(); renderToday();
+  };
 }
 
 // ============================================================
@@ -972,6 +1131,7 @@ function renderInsights(){
         <div id="habit-cons"></div>
       </div>
     </div>
+    ${trackerChartsHTML(last30)}
   `;
   // draw charts
   lineChart(document.getElementById("cw-mood"), last30.map(x=>({k:x.k, v:x.d&&x.d.mood!=null?x.d.mood:null})),
@@ -982,6 +1142,7 @@ function renderInsights(){
     {fmt:v=>money(v*100)});
   dowMood(document.getElementById("dow-mood"));
   habitConsistency(document.getElementById("habit-cons"));
+  drawTrackerCharts(last30);
 }
 function monthSpend(k){ const m=monthKey(k); let c=0; for(const kk in S.days){ if(monthKey(kk)===m && S.days[kk].spend) c+=S.days[kk].spend; } return c; }
 function monthWorkouts(k){ const m=monthKey(k); let n=0; for(const kk in S.days){ if(monthKey(kk)===m && S.days[kk].workout) n++; } return n; }
@@ -1159,6 +1320,22 @@ function habitConsistency(host){
   </div>`;
 }
 
+// ---- custom tracker charts on Insights ----
+function trackerChartsHTML(last30){
+  const live=S.trackers.filter(t=>last30.some(x=>x.d&&x.d.custom&&x.d.custom[t.id]!=null));
+  if(!live.length) return "";
+  return `<div class="grid cols-2" style="margin-top:14px">`+live.map(t=>
+    `<div class="chart-card"><div class="chart-head"><div class="t">${escapeHtml(t.name)}</div><div class="s">${t.type==="scale"?"1–5 · 30d":(t.unit?escapeHtml(t.unit)+" · 30d":"30d")}</div></div><div class="chart-wrap" id="cw-trk-${t.id}"></div></div>`
+  ).join("")+`</div>`;
+}
+function drawTrackerCharts(last30){
+  S.trackers.forEach(t=>{
+    const host=document.getElementById("cw-trk-"+t.id); if(!host) return;
+    const data=last30.map(x=>({k:x.k, v:x.d&&x.d.custom&&x.d.custom[t.id]!=null?+x.d.custom[t.id]:null}));
+    if(t.type==="scale") lineChart(host, data, {min:1,max:5,yticks:[1,3,5]});
+    else lineChart(host, data, {min:0, area:true, fmt:v=>Math.round(v*10)/10+(t.unit?" "+t.unit:"")});
+  });
+}
 function miniEmpty(msg){ return `<div class="empty" style="padding:26px 10px"><div class="hint">${msg||"Not enough data yet"}</div></div>`; }
 function emptyState(big,sub){
   return `<div class="card"><div class="empty">
@@ -1226,6 +1403,8 @@ function aiPayload(period){
     workouts_previous_period: prev.filter(x=>x.d&&x.d.workout).length,
     total_spend: sum(g(cur,d=>d.spend))>0 ? money(sum(g(cur,d=>d.spend))) : null,
     habits: S.habits.map(h=>({name:h.name, days_done: cur.filter(x=>x.d&&x.d.habits&&x.d.habits[h.id]).length})),
+    custom_trackers: S.trackers.map(t=>{ const vals=cur.map(x=>x.d&&x.d.custom&&x.d.custom[t.id]!=null?+x.d.custom[t.id]:null).filter(v=>v!=null); return {name:t.name, unit:t.unit||null, type:t.type, average: vals.length?round1(vals.reduce((a,b)=>a+b,0)/vals.length):null, entries:vals.length}; }).filter(t=>t.entries>0),
+    frequent_tags: allTags().slice(0,8),
     daily_mood: cur.filter(x=>x.d&&x.d.mood).map(x=>({day:relLabel(x.k), mood:MOOD_LABELS[x.d.mood-1]})),
     journal_lines: cur.filter(x=>x.d&&x.d.journal&&x.d.journal.trim()).map(x=>({day:relLabel(x.k), text:x.d.journal.trim()}))
   };
@@ -1465,20 +1644,25 @@ function renderJournal(){
     const d=S.days[k]; return (d.journal&&d.journal.trim())||(d.note&&d.note.trim());
   }).sort().reverse();
   const q=journalQuery.trim().toLowerCase();
+  const tags=allTags();
+  if(journalTag && !tags.includes(journalTag)) journalTag="";
   const filtered=entries.filter(k=>{
-    if(!q) return true;
     const d=S.days[k];
+    if(journalTag && !dayTags(d).includes(journalTag)) return false;
+    if(!q) return true;
     return ((d.journal||"")+" "+(d.note||"")).toLowerCase().includes(q);
   });
   el.innerHTML=`
     <div class="search">${I.search}<input id="jsearch" placeholder="Search your journal…" value="${escapeHtml(journalQuery)}"/></div>
+    ${tags.length?`<div class="tag-bar">${tags.map(t=>`<button class="tag-chip ${journalTag===t?"on":""}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("")}</div>`:""}
     ${filtered.length===0 ? (entries.length===0
         ? emptyStateJournal()
-        : `<div class="empty" style="margin-top:20px"><div class="hint">No entries match “${escapeHtml(journalQuery)}”.</div></div>`)
-      : `<div class="timeline card">${filtered.map(k=>jEntry(k)).join("")}</div>`}
+        : `<div class="empty" style="margin-top:20px"><div class="hint">No entries match ${journalTag?`the tag <span class="jtag">${escapeHtml(journalTag)}</span>`:`“${escapeHtml(journalQuery)}”`}.</div></div>`)
+      : `<div class="timeline card" style="margin-top:14px">${filtered.map(k=>jEntry(k)).join("")}</div>`}
   `;
   const s=document.getElementById("jsearch");
   s.oninput=()=>{ journalQuery=s.value; const pos=s.selectionStart; renderJournal(); const ns=document.getElementById("jsearch"); ns.focus(); try{ns.setSelectionRange(pos,pos);}catch(e){} };
+  document.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>{ journalTag = journalTag===b.dataset.tag ? "" : b.dataset.tag; renderJournal(); });
 }
 function jEntry(k){
   const d=S.days[k]; const dt=parseKey(k);
@@ -1490,8 +1674,8 @@ function jEntry(k){
   return `<div class="jentry">
     <div class="jdate"><div class="d">${dt.getDate()}</div><div class="m">${MO[dt.getMonth()]}</div></div>
     <div class="jbody">
-      ${d.journal&&d.journal.trim()?`<div class="line">${escapeHtml(d.journal.trim())}</div>`:`<div class="line" style="color:var(--muted);font-weight:450">${WDL[dt.getDay()]}</div>`}
-      ${d.note&&d.note.trim()?`<div class="note">${escapeHtml(d.note.trim())}</div>`:""}
+      ${d.journal&&d.journal.trim()?`<div class="line">${highlightTags(escapeHtml(d.journal.trim()))}</div>`:`<div class="line" style="color:var(--muted);font-weight:450">${WDL[dt.getDay()]}</div>`}
+      ${d.note&&d.note.trim()?`<div class="note">${highlightTags(escapeHtml(d.note.trim()))}</div>`:""}
       ${meta.length?`<div class="jmeta">${meta.join("")}</div>`:""}
     </div>
   </div>`;
@@ -1523,7 +1707,9 @@ function refreshSettings(){
   document.getElementById("ai-switch").classList.toggle("on", AI.enabled);
   document.getElementById("ai-fields").style.display = AI.enabled ? "" : "none";
   document.getElementById("ai-key").value = AI.key || "";
+  document.querySelectorAll("[data-hide]").forEach(b=>b.classList.toggle("on", !hidden(b.dataset.hide)));
 }
+document.querySelectorAll("[data-hide]").forEach(b=>b.onclick=()=>{ const id=b.dataset.hide; S.settings.hide[id]=!S.settings.hide[id]; save(); refreshSettings(); if(curTab==="today") renderToday(); });
 document.querySelectorAll("[data-theme-set]").forEach(b=>b.onclick=()=>{ setTheme(b.dataset.themeSet||""); refreshSettings(); });
 document.getElementById("cur-sel").onchange=function(){ S.settings.currency=this.value; save(); render(); };
 // AI review config
