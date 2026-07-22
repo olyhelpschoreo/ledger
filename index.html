@@ -391,7 +391,11 @@
     transition:transform .28s cubic-bezier(.3,.9,.4,1);max-height:88vh;overflow-y:auto;
   }
   .sheet.show{transform:translate(-50%,0)}
-  .grab{width:38px;height:4px;border-radius:99px;background:var(--axis);margin:8px auto 14px}
+  .grab{display:block;width:44px;height:5px;border-radius:99px;background:var(--axis);margin:8px auto 12px;border:none;cursor:pointer;padding:0}
+  .grab:hover{background:var(--muted)}
+  .sheet-close{position:absolute;top:14px;right:16px;width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);display:grid;place-items:center;color:var(--ink-2);z-index:2;transition:.14s}
+  .sheet-close:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+  .sheet-close svg{width:17px;height:17px}
   .sheet h3{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:4px}
   .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
   .set-row:last-child{border-bottom:none}
@@ -467,7 +471,10 @@
 <!-- settings -->
 <div class="backdrop" id="backdrop"></div>
 <div class="sheet" id="sheet">
-  <div class="grab"></div>
+  <button class="grab" id="sheet-grab" aria-label="Close settings"></button>
+  <button class="sheet-close" id="sheet-close" aria-label="Close settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
   <h3>Settings</h3>
   <p class="hint" style="margin-bottom:8px">Everything lives on this device. Nothing is ever uploaded.</p>
   <div class="set-row" id="install-row" style="display:none">
@@ -1505,6 +1512,8 @@ function openSheet(){ refreshSettings(); backdrop.classList.add("show"); sheet.c
 function closeSheet(){ backdrop.classList.remove("show"); sheet.classList.remove("show"); }
 document.getElementById("btn-settings").onclick=openSheet;
 backdrop.onclick=closeSheet;
+document.getElementById("sheet-close").onclick=closeSheet;
+document.getElementById("sheet-grab").onclick=closeSheet;
 function refreshSettings(){
   const n=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).length;
   document.getElementById("data-sub").textContent = n+" "+(n===1?"day":"days")+" logged";
