@@ -1,5 +1,5 @@
 /* Ledger of Days — offline-first service worker */
-const CACHE = "ledger-v8";
+const CACHE = "ledger-v9";
 const ASSETS = [
   "./",
   "./index.html",
