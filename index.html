@@ -399,6 +399,23 @@
   .kv .k{font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
   .kv .v{font-size:19px;font-weight:750;margin-top:3px;letter-spacing:-.01em}
   .kv .d{font-size:11.5px;font-weight:650;margin-top:2px}
+  /* year-review mood distribution */
+  .dist{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:6px 0 16px;align-items:end}
+  .dist-col{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .dist-track{width:100%;height:88px;display:flex;align-items:flex-end;justify-content:center}
+  .dist-bar{width:64%;max-width:34px;border-radius:5px 5px 3px 3px;min-height:3px}
+  .dist-n{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+  .dist-l{font-size:10.5px;font-weight:600;color:var(--muted)}
+  /* ask your data */
+  .ask-card .section-title{display:flex;align-items:center;gap:7px}
+  .ask-card .section-title svg{width:15px;height:15px;color:var(--accent)}
+  .ask-row{display:flex;gap:8px}
+  .ask-row input{flex:1;border:1.5px solid var(--border);border-radius:12px;background:var(--surface-2);padding:12px 14px;font-size:15px}
+  .ask-row input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+  .ask-row .btn{flex:none}
+  .ask-suggest{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .ask-chip{padding:7px 12px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface-2);font-size:12.5px;font-weight:600;color:var(--ink-2);transition:.14s}
+  .ask-chip:hover{border-color:var(--accent);color:var(--accent)}
 
   /* ============ JOURNAL ============ */
   .search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:0 13px;box-shadow:var(--shadow)}
@@ -549,7 +566,8 @@
   <div class="set-row">
     <div><div class="lbl">Your data</div><div class="sub" id="data-sub">— entries</div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-      <button class="btn" id="btn-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export</button>
+      <button class="btn" id="btn-export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Backup</button>
+      <button class="btn" id="btn-csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h2M8 17h2M14 13h2M14 17h2" stroke-width="1.5"/></svg>CSV</button>
       <button class="btn" id="btn-import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 8l5-5 5 5M12 3v12"/></svg>Import</button>
     </div>
   </div>
@@ -1347,32 +1365,31 @@ function emptyState(big,sub){
 // ============================================================
 //  RENDER: REVIEW  (the "written from your data" engine)
 // ============================================================
+function reviewSeg(){
+  const b=(rp,label)=>`<button data-rp="${rp}" style="flex:1" class="${reviewPeriod===rp?"on":""}">${label}</button>`;
+  return `<div class="seg" style="display:flex;width:100%;margin-bottom:16px" id="rseg">${b("week","This week")}${b("month","This month")}${b("all","All time")}</div>`;
+}
 function renderReview(){
   const el=views.review;
-  const total=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).length;
-  if(total<3){ el.innerHTML=`
-    <div class="seg" style="margin-bottom:16px" id="rseg">
-      <button data-rp="week" class="${reviewPeriod==="week"?"on":""}">This week</button>
-      <button data-rp="month" class="${reviewPeriod==="month"?"on":""}">This month</button>
-    </div>
-    ${emptyState("Your review is warming up","Log at least a few days and I'll write you a plain-English review of your own patterns — trends, your best day, and correlations I notice. All computed on your device.")}`;
+  const total=totalLogged();
+  if(total<3){ el.innerHTML=reviewSeg()+
+    emptyState("Your review is warming up","Log at least a few days and I'll write you a plain-English review of your own patterns — trends, your best day, and correlations I notice. All computed on your device.");
     wireReviewSeg(); return; }
 
   const R = buildReview(reviewPeriod);
   el.innerHTML=`
-    <div class="seg" style="margin-bottom:16px" id="rseg">
-      <button data-rp="week" class="${reviewPeriod==="week"?"on":""}">This week</button>
-      <button data-rp="month" class="${reviewPeriod==="month"?"on":""}">This month</button>
-    </div>
+    ${reviewSeg()}
     <div class="card">
       <div class="section-title">${R.title}</div>
       <div class="review-body" style="margin-top:12px">
         <p class="review-lead">${R.lead}</p>
         ${R.kv}
+        ${R.extra||""}
         ${R.paras.map(p=>`<p>${p}</p>`).join("")}
       </div>
       ${aiReady()?`<div class="ai-block"><button class="btn primary" id="ai-btn">${I.spark}Write with AI</button><div id="ai-out" style="margin-top:14px"></div></div>`:""}
     </div>
+    ${aiReady()?askCard():""}
     <div class="chart-card" style="margin-top:14px">
       <div class="chart-head"><div class="t">Your year</div><div class="s">each square is a day · colored by mood</div></div>
       <div id="year-heat"></div>
@@ -1380,15 +1397,88 @@ function renderReview(){
   `;
   wireReviewSeg();
   const ab=document.getElementById("ai-btn"); if(ab) ab.onclick=()=>runAIReview(reviewPeriod);
+  wireAsk();
   yearHeat(document.getElementById("year-heat"));
 }
 function wireReviewSeg(){
   document.querySelectorAll("#rseg [data-rp]").forEach(b=>b.onclick=()=>{ reviewPeriod=b.dataset.rp; renderReview(); });
 }
 
+// ---- Ask your data (opt-in AI) ----
+function askCard(){
+  return `<div class="card ask-card">
+    <div class="section-title">${I.spark}Ask your data</div>
+    <p class="hint" style="margin:6px 0 12px">Ask a question about your own history — “When am I happiest?”, “What do my best weeks have in common?”</p>
+    <div class="ask-row"><input id="ask-q" placeholder="Ask a question…" maxlength="160" /><button class="btn primary" id="ask-go">Ask</button></div>
+    <div class="ask-suggest">${["When am I happiest?","How's my sleep been?","What lifts my mood?"].map(q=>`<button class="ask-chip" data-askq="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join("")}</div>
+    <div id="ask-out" style="margin-top:14px"></div>
+  </div>`;
+}
+function wireAsk(){
+  const go=document.getElementById("ask-go"), q=document.getElementById("ask-q");
+  if(!go) return;
+  const fire=()=>{ const v=(q.value||"").trim(); if(!v){ q.focus(); return; } runAskData(v); };
+  go.onclick=fire;
+  q.onkeydown=(e)=>{ if(e.key==="Enter") fire(); };
+  document.querySelectorAll("[data-askq]").forEach(b=>b.onclick=()=>{ q.value=b.dataset.askq; runAskData(b.dataset.askq); });
+}
+// a compact all-time profile of the user's data for question-answering
+function dataProfile(){
+  const days=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).sort();
+  const arr=days.map(k=>({k,d:S.days[k]}));
+  const g=f=>arr.map(x=>f(x.d));
+  const dow=[[],[],[],[],[],[],[]], dowSleep=[[],[],[],[],[],[],[]];
+  arr.forEach(x=>{ const wd=parseKey(x.k).getDay(); if(x.d.mood!=null)dow[wd].push(x.d.mood); if(x.d.sleep!=null)dowSleep[wd].push(x.d.sleep); });
+  const mood=g(d=>d.mood), sleep=g(d=>d.sleep), energy=g(d=>d.energy), spend=g(d=>d.spend), workout=arr.map(x=>x.d.workout?1:0);
+  const corr=(a,b)=>{ const p=pearson(a,b); return p?round1(p.r):null; };
+  return {
+    date_range: days.length?days[0]+" to "+days[days.length-1]:null,
+    days_logged: days.length,
+    overall_avg_mood_out_of_5: round1(avg(mood)),
+    overall_avg_sleep_hours: round1(avg(sleep)),
+    overall_avg_energy_out_of_5: round1(avg(energy)),
+    workout_days: workout.reduce((a,b)=>a+b,0),
+    longest_streak: bestStreak(),
+    avg_mood_by_weekday: WDL.map((n,i)=>({day:n, avg_mood:round1(avg(dow[i])), avg_sleep:round1(avg(dowSleep[i]))})),
+    correlations_minus1_to_1: { prev_night_sleep_vs_mood: corr(sleep.slice(0,-1), mood.slice(1)), workout_vs_same_day_mood: corr(workout, mood), spend_vs_mood: corr(spend, mood), energy_vs_mood: corr(energy, mood) },
+    habit_rates: S.habits.map(h=>({name:h.name, pct_days: days.length?Math.round(arr.filter(x=>x.d.habits&&x.d.habits[h.id]).length/days.length*100):0})),
+    custom_tracker_averages: S.trackers.map(t=>{ const v=arr.map(x=>x.d.custom&&x.d.custom[t.id]!=null?+x.d.custom[t.id]:null).filter(n=>n!=null); return {name:t.name, unit:t.unit||null, average:v.length?round1(v.reduce((a,b)=>a+b,0)/v.length):null}; }).filter(t=>t.average!=null),
+    top_tags: allTags().slice(0,10),
+    recent_journal_lines: arr.slice(-25).filter(x=>x.d.journal&&x.d.journal.trim()).map(x=>({day:relLabel(x.k), mood:x.d.mood?MOOD_LABELS[x.d.mood-1]:null, line:x.d.journal.trim()}))
+  };
+}
+async function runAskData(question){
+  const out=document.getElementById("ask-out"), go=document.getElementById("ask-go");
+  if(!aiReady()){ toast("Enable AI review in Settings"); return; }
+  go.disabled=true; go.style.opacity=".6";
+  out.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span>Reading your history…</div>`;
+  const sys="You answer questions about ONE person's own life-tracking data, speaking directly to them as \"you\". Use ONLY the JSON data provided — never invent numbers or events. If the data can't answer the question, say so plainly and suggest what to log. Correlations are Pearson coefficients from −1 to 1: |value| under ~0.3 is weak, so don't overstate. Be warm, concrete, and brief (1–3 short paragraphs, no lists, no markdown). Never give medical, clinical, or financial advice — gentle general observations only.";
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"content-type":"application/json","x-api-key":AI.key.trim(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({ model:"claude-opus-4-8", max_tokens:900, output_config:{effort:"low"}, system:sys,
+        messages:[{role:"user",content:"My question: "+question+"\n\nMy data:\n"+JSON.stringify(dataProfile(),null,2)}] })
+    });
+    if(!res.ok){
+      let msg="Something went wrong ("+res.status+").";
+      if(res.status===401) msg="That API key was rejected. Check it in Settings.";
+      else if(res.status===429) msg="Rate limited — try again in a moment.";
+      else if(res.status===400) msg="Request rejected (400). Your key may lack access to this model.";
+      out.innerHTML=`<div class="hint" style="color:var(--bad)">${msg}</div>`; return;
+    }
+    const j=await res.json();
+    const text=(j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    out.innerHTML = text ? `<div class="ai-review">${text.split(/\n\n+/).map(p=>`<p>${escapeHtml(p)}</p>`).join("")}</div><div class="ai-foot">${I.spark}Answered by Claude from your data</div>` : `<div class="hint">No answer came back — try rephrasing.</div>`;
+  }catch(e){
+    out.innerHTML=`<div class="hint" style="color:var(--bad)">Couldn't reach Claude — check your connection.</div>`;
+  }finally{ go.disabled=false; go.style.opacity=""; }
+}
+
 // ---- AI REVIEW (opt-in, bring-your-own Anthropic key) ----
 function round1(v){ return v==null?null:Math.round(v*10)/10; }
 function aiPayload(period){
+  if(period==="all") return Object.assign({period:"all time — a year-in-review"}, dataProfile());
   const isWeek=period==="week", N=isWeek?7:30;
   const cur=seriesBack(N), prev=seriesBack(N*2).slice(0,N);
   const g=(arr,f)=>arr.map(x=>x.d?f(x.d):null);
@@ -1413,8 +1503,9 @@ async function runAIReview(period){
   const btn=document.getElementById("ai-btn"), out=document.getElementById("ai-out");
   if(!aiReady()){ toast("Add your API key in Settings"); return; }
   btn.disabled=true; btn.style.opacity=".6";
-  out.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span>Claude is reading ${period==="week"?"your week":"your month"}…</div>`;
-  const sys="You are a warm, perceptive journaling companion writing a private "+(period==="week"?"weekly":"monthly")+" review for one person, addressed as \"you\". Ground every statement ONLY in the data provided — never invent events, numbers, or feelings that aren't there; if something wasn't logged, don't mention it. Be honest and specific rather than flattering: it's okay to gently name a hard stretch. Notice patterns across the numbers and the journal lines (for example how sleep, mood, movement, or spending move together) but describe them as gentle observations, not certainties. Write 3 to 5 short paragraphs of plain prose — no headings, no lists, no markdown. Never give medical, clinical, or financial advice. End on a grounded, kind, forward-looking note.";
+  const noun = period==="week"?"weekly":period==="month"?"monthly":"all-time (a year-in-review)";
+  out.innerHTML=`<div class="ai-loading"><span class="ai-dot"></span>Claude is reading ${period==="week"?"your week":period==="month"?"your month":"your whole history"}…</div>`;
+  const sys="You are a warm, perceptive journaling companion writing a private "+noun+" review for one person, addressed as \"you\". Ground every statement ONLY in the data provided — never invent events, numbers, or feelings that aren't there; if something wasn't logged, don't mention it. Be honest and specific rather than flattering: it's okay to gently name a hard stretch. Notice patterns across the numbers and the journal lines (for example how sleep, mood, movement, or spending move together) but describe them as gentle observations, not certainties. Write 3 to 5 short paragraphs of plain prose — no headings, no lists, no markdown. Never give medical, clinical, or financial advice. End on a grounded, kind, forward-looking note.";
   try{
     const res=await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST",
@@ -1454,7 +1545,49 @@ async function runAIReview(period){
   }
 }
 
+function buildYearReview(){
+  const arr=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).sort().map(k=>({k,d:S.days[k]}));
+  const g=f=>arr.map(x=>f(x.d));
+  const first=arr[0].k, last=arr[arr.length-1].k;
+  const cMood=avg(g(d=>d.mood)), cSleep=avg(g(d=>d.sleep));
+  const workouts=arr.filter(x=>x.d.workout).length, spend=sum(g(d=>d.spend));
+  const journaled=arr.filter(x=>x.d.journal&&x.d.journal.trim()).length, best=bestStreak();
+  const moods=arr.filter(x=>x.d.mood!=null);
+  let bDay=null,wDay=null; moods.forEach(x=>{ if(!bDay||x.d.mood>bDay.d.mood||(x.d.mood===bDay.d.mood&&x.k>bDay.k))bDay=x; if(!wDay||x.d.mood<wDay.d.mood)wDay=x; });
+  const byMonth={}; moods.forEach(x=>{ const m=monthKey(x.k); (byMonth[m]=byMonth[m]||[]).push(x.d.mood); });
+  let brightest=null; for(const m in byMonth){ if(byMonth[m].length>=3){ const a=avg(byMonth[m]); if(!brightest||a>brightest.a) brightest={m,a}; } }
+  const dist=[0,0,0,0,0]; moods.forEach(x=>dist[x.d.mood-1]++); const distMax=Math.max(...dist,1);
+  const fmtMonth=m=>{ const [y,mo]=m.split("-"); return MOL[+mo-1]+" "+y; };
+  const spanTxt = first===last ? fmtLong(first) : (MOL[parseKey(first).getMonth()]+" "+parseKey(first).getDate()+" – "+MOL[parseKey(last).getMonth()]+" "+parseKey(last).getDate());
+
+  let lead;
+  if(cMood==null){ lead=`You've kept this ledger for ${arr.length} days, from ${spanTxt}. Add a mood rating and this review fills out.`; }
+  else{ const w=cMood>=4?"a genuinely good run":cMood>=3.3?"a steady, solid stretch":cMood>=2.6?"a mixed run":"a heavy stretch";
+    lead=`From ${spanTxt}, you've kept this ledger for <strong>${arr.length} days</strong>. Taken all together it reads as ${w} — averaging ${cMood.toFixed(1)} out of 5.`; }
+
+  const kvs=[kvItem("Days logged", arr.length+"", "")];
+  if(cMood!=null) kvs.push(kvItem("Avg mood", cMood.toFixed(1)+" / 5", ""));
+  kvs.push(kvItem("Longest streak", best+" day"+(best===1?"":"s"), ""));
+  if(cSleep!=null) kvs.push(kvItem("Avg sleep", cSleep.toFixed(1)+"h", ""));
+  kvs.push(kvItem("Workouts", workouts+"", ""));
+  if(spend>0) kvs.push(kvItem("Total spent", money(spend,true), ""));
+  kvs.push(kvItem("Journaled", journaled+"", ""));
+  const kv=`<div class="kv-grid">${kvs.join("")}</div>`;
+
+  let extra="";
+  if(moods.length) extra=`<div class="dist">${dist.map((c,i)=>`<div class="dist-col"><div class="dist-track"><div class="dist-bar" style="height:${Math.max(c/distMax*100,3)}%;background:${MOOD_COLORS[i]}"></div></div><div class="dist-n">${c}</div><div class="dist-l">${MOOD_LABELS[i]}</div></div>`).join("")}</div>`;
+
+  const paras=[];
+  if(cSleep!=null) paras.push(`Across it all you've averaged <strong>${cSleep.toFixed(1)} hours</strong> of sleep and moved on <strong>${workouts}</strong> ${workouts===1?"day":"days"}.`);
+  if(bDay&&wDay&&bDay.k!==wDay.k){ let s=`Your brightest day on record is <strong>${fmtLong(bDay.k)}</strong>`; if(bDay.d.journal&&bDay.d.journal.trim()) s+=` — “${escapeHtml(bDay.d.journal.trim())}”`; s+=`. The hardest was ${fmtLong(wDay.k)}`; if(wDay.d.journal&&wDay.d.journal.trim()) s+=` — “${escapeHtml(wDay.d.journal.trim())}”`; s+=`.`; paras.push(s); }
+  if(brightest) paras.push(`<strong>${fmtMonth(brightest.m)}</strong> has been your brightest month so far, averaging ${brightest.a.toFixed(1)} out of 5.`);
+  const tags=allTags(); if(tags.length) paras.push(`Your most-used journal tags: ${tags.slice(0,5).map(t=>`<strong>${escapeHtml(t)}</strong>`).join(", ")}.`);
+  if(journaled>0) paras.push(`And you've captured <strong>${journaled}</strong> journal ${journaled===1?"line":"lines"} — a record that only grows more valuable the longer you keep it.`);
+
+  return { title:"Year in review · your ledger so far", lead, kv, extra, paras };
+}
 function buildReview(period){
+  if(period==="all") return buildYearReview();
   const isWeek = period==="week";
   const N = isWeek?7:30;
   const cur = seriesBack(N), prev = seriesBack(N*2).slice(0,N);
@@ -1745,6 +1878,31 @@ function doExport(){
   if(curTab==="today") renderToday();
 }
 document.getElementById("btn-export").onclick=doExport;
+function csvCell(v){ if(v==null) return ""; v=String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function doExportCSV(){
+  const keys=Object.keys(S.days).filter(k=>dayHasContent(S.days[k])).sort();
+  if(!keys.length){ toast("Nothing to export yet"); return; }
+  const cols=["Date","Weekday","Mood (1-5)","Mood","Sleep (h)","Energy (1-5)","Workout","Workout min","Spend ("+cur().trim()+")"]
+    .concat(S.habits.map(h=>h.name))
+    .concat(S.trackers.map(t=>t.name+(t.unit?" ("+t.unit+")":"")))
+    .concat(["Tags","Journal","Note"]);
+  const rows=[cols.map(csvCell).join(",")];
+  keys.forEach(k=>{
+    const d=S.days[k], dt=parseKey(k);
+    const row=[k, WD[dt.getDay()], d.mood!=null?d.mood:"", d.mood!=null?MOOD_LABELS[d.mood-1]:"",
+      d.sleep!=null?d.sleep:"", d.energy!=null?d.energy:"", d.workout?"yes":"", d.workout&&d.workoutMin!=null?d.workoutMin:"",
+      d.spend!=null?(d.spend/100).toFixed(2):""];
+    S.habits.forEach(h=>row.push(d.habits&&d.habits[h.id]?"1":""));
+    S.trackers.forEach(t=>row.push(d.custom&&d.custom[t.id]!=null?d.custom[t.id]:""));
+    row.push(dayTags(d).join(" "), (d.journal||"").trim(), (d.note||"").trim());
+    rows.push(row.map(csvCell).join(","));
+  });
+  const blob=new Blob(["﻿"+rows.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a");
+  a.href=url; a.download="ledger-of-days-"+todayKey()+".csv"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000); toast("Spreadsheet downloaded");
+}
+document.getElementById("btn-csv").onclick=doExportCSV;
 document.getElementById("btn-import").onclick=()=>document.getElementById("file-import").click();
 document.getElementById("file-import").onchange=function(){
   const f=this.files[0]; if(!f) return;
